@@ -1,0 +1,524 @@
+// 全局样式入口
+// Bootstrap 5 + public.css 已在 nuxt.config.ts 的 css 数组中引入
+// 本文件仅放：CSS 变量定义、过渡动画、Nuxt3 特定补丁，不重复 reset/排版（避免与 public.css 冲突）
+
+// ============================================
+// 统一断点设计令牌（与 Bootstrap 5 对齐）
+// ============================================
+// Bootstrap 5 默认断点：sm=576 md=768 lg=992 xl=1200 xxl=1400
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+$breakpoint-xxl: 1400px;
+
+// 响应式 mixin（统一断点入口）
+@mixin mobile {
+  @media (max-width: $breakpoint-md - 1px) { @content; }
+}
+@mixin tablet {
+  @media (min-width: $breakpoint-md) and (max-width: $breakpoint-lg - 1px) { @content; }
+}
+@mixin desktop {
+  @media (min-width: $breakpoint-lg) { @content; }
+}
+@mixin mobile-tablet {
+  @media (max-width: $breakpoint-lg - 1px) { @content; }
+}
+
+// ============================================
+// 统一设计令牌（现代化企业官网标准）
+// 主色调：#005f96（深蓝）—— 体现专业、稳重、可信赖
+// 中性色系：从 #1a2332 到 #f5f7fa 渐变，保证视觉层次
+// ============================================
+:root {
+  // ---- 品牌主色系 ----
+  --brand-primary: #005f96;
+  --brand-primary-dark: #003d5c;
+  --brand-primary-light: #0074b0;
+  --brand-primary-lighter: #e8f1f8;
+  --brand-primary-soft: #dce8f3;
+
+  // ---- 辅助强调色 ----
+  --brand-accent: #c0151c;
+  --brand-accent-soft: #fef0f0;
+
+  // ---- 文字色阶（从深到浅）----
+  --text-primary: #1a2332;
+  --text-secondary: #454545;
+  --text-tertiary: #5a6573;
+  --text-muted: #8a94a3;
+  --text-disabled: #b8c0cc;
+  --text-on-primary: #ffffff;
+
+  // ---- 背景色阶 ----
+  --bg-page: #f5f7fa;
+  --bg-card: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-muted: #f0f3f7;
+  --bg-hover: #f5f7fa;
+  --bg-overlay: rgba(15, 23, 42, 0.5);
+
+  // ---- 边框色阶 ----
+  --border-light: #f0f3f7;
+  --border-base: #e8ecf0;
+  --border-dark: #d1d9e0;
+  --border-primary: rgba(0, 95, 150, 0.3);
+
+  // ---- 阴影系统（4 级）----
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.10);
+  --shadow-xl: 0 12px 32px rgba(0, 95, 150, 0.14);
+  --shadow-primary: 0 8px 24px rgba(0, 95, 150, 0.12);
+  --shadow-hover: 0 12px 28px rgba(0, 95, 150, 0.18);
+
+  // ---- 圆角系统 ----
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-pill: 999px;
+
+  // ---- 间距系统（4px 基准）----
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  // ---- 字体大小令牌 ----
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 15px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 28px;
+  --font-size-4xl: 32px;
+
+  // ---- 行高 ----
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.4;
+  --line-height-normal: 1.6;
+  --line-height-relaxed: 1.75;
+  --line-height-loose: 1.8;
+
+  // ---- 过渡时长 ----
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  // ---- 字体族 ----
+  --font-family-base: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-family-heading: var(--font-family-base);
+}
+
+// ============================================
+// 全局基础排版优化
+// 现代化企业官网标准：清晰字体层级 + 舒适行距
+// ============================================
+body {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+  color: var(--text-primary);
+  background-color: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+// 统一标题样式
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-heading);
+  font-weight: 600;
+  line-height: var(--line-height-snug);
+  color: var(--text-primary);
+}
+
+h1 { font-size: var(--font-size-4xl); }
+h2 { font-size: var(--font-size-3xl); }
+h3 { font-size: var(--font-size-2xl); }
+h4 { font-size: var(--font-size-xl); }
+h5 { font-size: var(--font-size-lg); }
+h6 { font-size: var(--font-size-md); }
+
+// 段落行距（1.6-1.8 倍，符合现代阅读标准）
+p {
+  line-height: var(--line-height-relaxed);
+  color: var(--text-secondary);
+}
+
+// 统一链接过渡
+a {
+  color: var(--brand-primary);
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--brand-primary-light);
+}
+
+// ============================================
+// 全局触摸优化（不冲突，补充 public.css 未覆盖部分）
+// ============================================
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+// P2-20: 触控目标尺寸（WCAG 2.5.5 Target Size ≥ 44×44px）
+// 仅移动端，且只针对 Bootstrap 5 的导航类（不影响原项目 .nav 类）
+@include mobile {
+  .nav-link,
+  .dropdown-item,
+  .page-link {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+// ============================================
+// visually-hidden（Bootstrap 5 已自带 .visually-hidden，此处仅作兼容补充）
+// ============================================
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+// ============================================
+// P2-23: 页面过渡动画
+// ============================================
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.layout-enter-active,
+.layout-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.layout-enter-from,
+.layout-leave-to {
+  opacity: 0;
+}
+
+// ============================================
+// 响应式 logo（与 public.css .m-head .m-logo img 配合）
+// ============================================
+.logo-img {
+  max-height: 90px;
+  width: auto;
+
+  @include mobile {
+    max-height: 60px;
+  }
+}
+
+// ============================================
+// P3-30: 动态视口高度（修复 iOS Safari 100vh 含地址栏问题）
+// ============================================
+.full-height {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+// ============================================
+// 移动端触摸优化（仅作用于 max-width: 991px，不影响 PC 端）
+// ============================================
+// 原则：
+// 1. 所有触控目标最小 44×44px（WCAG 2.5.5 Target Size 标准）
+// 2. 用 :active 替代 :hover 作为触摸反馈
+// 3. 增大间距避免误触
+// 4. 仅通过媒体查询作用于移动端，PC 端样式零影响
+
+@include mobile-tablet {
+  // ---------- 通用触摸反馈 ----------
+  // 移除 hover 过渡延迟，用 active 状态提供即时反馈
+  a,
+  button,
+  [role="button"] {
+    -webkit-tap-highlight-color: rgba(0, 95, 150, 0.15);
+    touch-action: manipulation;
+  }
+
+  // 通用 active 态：轻微缩放 + 背景色变化，提供触摸反馈
+  a:active,
+  button:active,
+  [role="button"]:active {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+
+  // ---------- 导航菜单 ----------
+  // 主导航链接：增大点击区域，整行可点
+  .m-head .navbar-nav > li > a,
+  .m-head .navbar-nav > li .dropdown-toggle {
+    min-height: 44px;
+    line-height: 44px !important;
+    padding: 0 20px !important;
+    font-size: 16px;
+  }
+
+  // 移动端汉堡按钮：尺寸与样式由 AppHeader.vue scoped 样式统一管理
+  // 此处仅保留触控区域兜底（min-height），不覆盖 padding/外观
+  .mobile-menu-btn {
+    min-height: 40px;
+  }
+
+  // ---------- 首页推荐文章模块 ----------
+  // 置顶标题：增大点击区域
+  .u-workt {
+    min-height: 44px;
+    padding: 20px 15px !important;
+    font-size: 22px !important;
+    line-height: 1.4 !important;
+  }
+
+  // 推荐分类 tab：增大点击区域
+  .u-workrt ul li {
+    min-height: 44px;
+    margin-bottom: 10px !important;
+
+    a {
+      min-height: 44px;
+      line-height: 44px !important;
+      font-size: 18px !important;
+    }
+  }
+
+  // 右侧文章列表项：增大点击区域，优化间距以适配 4 条
+  .u-workrclist {
+    padding-bottom: 10px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .u-workrc1 a {
+    min-height: 44px;
+    line-height: 1.4 !important;
+    padding: 4px 0;
+    font-size: 15px !important;
+  }
+
+  .u-workrc1 p {
+    line-height: 1.5 !important;
+    margin-top: 2px;
+  }
+
+  // 更多按钮
+  .u-more {
+    width: 44px !important;
+    min-height: 44px;
+    background-size: 24px auto !important;
+    background-position: center !important;
+  }
+
+  .u-more a {
+    width: 44px !important;
+    min-height: 44px;
+  }
+
+  // ---------- 首页普通分类列表 ----------
+  .u-listhomet {
+    min-height: 44px;
+    line-height: 44px !important;
+  }
+
+  .u-listhometl {
+    font-size: 20px !important;
+  }
+
+  .u-listhometr {
+    font-size: 14px !important;
+    min-height: 44px;
+    line-height: 44px !important;
+  }
+
+  // 列表项链接：增大点击区域
+  .u-listhomec ul li a {
+    min-height: 44px;
+    line-height: 44px !important;
+    font-size: 15px !important;
+    padding: 8px 15px 8px 20px !important;
+  }
+
+  .u-listhomec ul li span {
+    line-height: 44px !important;
+  }
+
+  // ---------- 横向滚动建设模块 ----------
+  .m-jianshe {
+    height: auto !important;
+    padding: 15px 20px !important;
+  }
+
+  .u-jianshe ul li {
+    width: 260px !important;
+    margin-right: 15px !important;
+  }
+
+  .u-jianshe ul li img {
+    height: 160px !important;
+  }
+
+  .u-jiansheimg {
+    height: 160px !important;
+  }
+
+  .u-jianshe ul li p {
+    line-height: 40px !important;
+    font-size: 14px;
+  }
+
+  // ---------- 友情链接 ----------
+  .u-friend-links ul li {
+    margin-right: 10px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .u-friend-links ul li a {
+    min-height: 44px;
+    padding: 10px 20px !important;
+    font-size: 15px;
+    display: inline-flex !important;
+    align-items: center;
+  }
+
+  // ---------- 分页器 ----------
+  .m-pagination li a,
+  .m-pagination li span {
+    min-width: 44px;
+    min-height: 44px;
+    line-height: 44px !important;
+    padding: 0 12px !important;
+    font-size: 16px;
+  }
+
+  // 每页条数选择器
+  .u-pagesize select {
+    min-height: 44px;
+    padding: 8px 28px 8px 12px !important;
+    font-size: 15px;
+  }
+
+  // 总条数显示
+  .u-total {
+    line-height: 44px !important;
+  }
+
+  // ---------- 详情页 ----------
+  // 文章标题
+  .u-lgtit {
+    font-size: 20px !important;
+    line-height: 1.5 !important;
+    padding: 10px 0 !important;
+  }
+
+  // 上一篇/下一篇：增大点击区域
+  .m-dtsxqh li a {
+    min-height: 44px;
+    line-height: 44px !important;
+    padding: 10px 15px !important;
+    font-size: 15px !important;
+  }
+
+  // ---------- 面包屑 ----------
+  .m-location {
+    min-height: 44px;
+    line-height: 44px !important;
+    font-size: 14px;
+  }
+
+  .m-location a {
+    min-height: 44px;
+    display: inline-block;
+    padding: 0 5px;
+  }
+
+  // ---------- 左侧分类侧边栏 ----------
+  .g-listlf li a {
+    min-height: 44px;
+    line-height: 44px !important;
+    padding: 10px 20px 10px 15px !important;
+    font-size: 15px !important;
+  }
+
+  .m-listlf .u-tit {
+    min-height: 44px;
+    line-height: 44px !important;
+  }
+}
+
+// ============================================
+// 手机端（max-width: 767px）额外优化
+// ============================================
+@include mobile {
+  // 横向滚动项更小，适配窄屏
+  .u-jianshe ul li {
+    width: 220px !important;
+    margin-right: 12px !important;
+  }
+
+  .u-jianshe ul li img {
+    height: 140px !important;
+  }
+
+  .u-jiansheimg {
+    height: 140px !important;
+  }
+
+  // 分页器间距更紧凑
+  .m-pagination li {
+    margin-right: 4px !important;
+  }
+
+  .m-pagination li a,
+  .m-pagination li span {
+    min-width: 40px;
+    min-height: 40px;
+    line-height: 40px !important;
+    padding: 0 8px !important;
+    font-size: 14px;
+  }
+
+  // 友情链接：每行 2 个
+  .u-friend-links ul li {
+    width: calc(50% - 10px);
+    margin-right: 10px !important;
+
+    &:nth-child(2n) {
+      margin-right: 0 !important;
+    }
+
+    a {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}
