@@ -34,7 +34,7 @@ interface Category {
 
 // 全站文章索引缓存
 let articleIndex: { articles: Article[]; time: number } | null = null
-const INDEX_TTL = 60 * 60 * 1000 // 1 小时
+const INDEX_TTL = 5 * 60 * 1000 // 5 分钟
 
 export default defineEventHandler(async (event: H3Event) => {
   const query = getQuery(event)

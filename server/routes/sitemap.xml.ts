@@ -37,7 +37,7 @@ interface SitemapUrl {
 
 // 内存缓存
 let cache: { xml: string; time: number } | null = null
-const CACHE_TTL = 60 * 60 * 1000 // 1 小时
+const CACHE_TTL = 5 * 60 * 1000 // 5 分钟
 
 export default defineEventHandler(async (event: H3Event) => {
   const query = getQuery(event)
