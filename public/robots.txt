@@ -6,5 +6,5 @@ Disallow: /404
 # Sitemap
 Sitemap: https://www.yousertc.com/sitemap.xml
 
-# Crawl-delay（搜索引擎爬取频率控制）
+# Crawl-delay（百度等搜索引擎爬取频率控制）
 Crawl-delay: 1

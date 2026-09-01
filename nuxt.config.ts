@@ -3,10 +3,10 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
 
-  // 全局 CSS：Bootstrap 5 + 原项目迁移样式 + 站点自定义样式（无 jQuery 依赖）
-  // 顺序：Bootstrap 基础 → 原项目公共样式 → 首页样式 → 内页样式 → 自定义覆盖
+  // 全局 CSS：Tailwind CSS（含 Bootstrap 兼容层）+ 原项目样式
+  // 顺序：Tailwind(含BS兼容层) → 原项目公共样式 → 首页样式 → 内页样式 → 自定义覆盖
   css: [
-    'bootstrap/dist/css/bootstrap.min.css',
+    '~/assets/css/tailwind.css',
     '~/assets/css/public.css',
     '~/assets/css/home.css',
     '~/assets/css/page.css',
@@ -16,6 +16,14 @@ export default defineNuxtConfig({
   modules: [
     '@pinia/nuxt'
   ],
+
+  // PostCSS 配置：直接使用 tailwindcss 插件（替代 @nuxtjs/tailwindcss 模块）
+  postcss: {
+    plugins: {
+      tailwindcss: {},
+      autoprefixer: {},
+    },
+  },
 
   // SSR 必开（核心目标）
   ssr: true,
