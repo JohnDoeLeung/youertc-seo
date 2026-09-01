@@ -73,12 +73,12 @@
 .m-btfuns li.u-collect a{background-position: 0 -140px;}
 .m-dtsxqh{padding: 20px 0 8px; display: flex; gap: 16px;}
 .m-dtsxqh ul{display: flex; width: 100%; gap: 16px;}
-.m-dtsxqh li{max-width: 50%; line-height: 30px; background-image: url(../images/icon-detail.png); background-repeat: no-repeat; overflow:hidden; word-wrap: normal; white-space: nowrap; text-overflow: ellipsis; flex: 1; padding: 12px 16px; background-color: var(--bg-muted); border-radius: var(--radius-md); transition: all 0.25s;}
+.m-dtsxqh li{max-width: 50%; line-height: 30px; overflow:hidden; word-wrap: normal; white-space: nowrap; text-overflow: ellipsis; flex: 1; padding: 12px 16px; background-color: var(--bg-muted); border-radius: var(--radius-md); transition: all 0.25s;}
 .m-dtsxqh li:hover{background-color: var(--brand-primary-lighter); transform: translateX(2px);}
 .m-dtsxqh li a{font-size: 14px; color: var(--text-secondary); transition: color 0.2s;}
 .m-dtsxqh li:hover a{color: var(--brand-primary);}
-.m-dtsxqh .u-dtprev{padding-left: 36px; background-position: 16px center; background-position-x: 16px; background-position-y: center;}
-.m-dtsxqh .u-dtnext{padding-right: 36px; background-position: right 16px center;}
+.m-dtsxqh .u-dtprev{padding-left: 16px;}
+.m-dtsxqh .u-dtnext{padding-right: 16px;}
 
 /*detailVideo*/
 .m-dtvideo{width: 700px; height: 400px; border-radius: var(--radius-md); overflow: hidden;}
