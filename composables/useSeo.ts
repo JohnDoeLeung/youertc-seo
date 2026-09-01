@@ -6,6 +6,7 @@
  * 2. JSON-LD 通过 useHead 注入，框架自动管理生命周期（无需 cleanupPageSeo）
  * 3. 全部 TypeScript，类型安全
  */
+import { isRef, computed, type Ref, type ComputedRef } from 'vue'
 
 interface SeoMetaInput {
   title?: string
@@ -75,25 +76,33 @@ export function useSeo(meta: SeoMetaInput) {
 /**
  * 注入面包屑 JSON-LD 结构化数据
  * 替代原 setBreadcrumbJsonLd，无需手动清理
+ * items 支持传入 Ref / ComputedRef，面包屑变化时会自动更新结构化数据
  */
-export function useBreadcrumbJsonLd(items: BreadcrumbItem[]) {
-  const jsonLd = {
+export function useBreadcrumbJsonLd(
+  items: BreadcrumbItem[] | Ref<BreadcrumbItem[]> | ComputedRef<BreadcrumbItem[]>
+) {
+  const list = computed(() =>
+    isRef(items) ? (items.value as BreadcrumbItem[]) : (items as BreadcrumbItem[])
+  )
+
+  const jsonLd = computed(() => ({
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
-    itemListElement: items.map((item, index) => ({
+    itemListElement: list.value.map((item, index) => ({
       '@type': 'ListItem',
       position: index + 1,
       name: item.name,
       item: item.url
     }))
-  }
+  }))
 
   useHead({
     script: [
       {
         type: 'application/ld+json',
         key: 'breadcrumb-jsonld',
-        innerHTML: JSON.stringify(jsonLd)
+        // innerHTML 传入 computed，随面包屑变化自动更新
+        innerHTML: computed(() => JSON.stringify(jsonLd.value)) as unknown as string
       }
     ]
   })

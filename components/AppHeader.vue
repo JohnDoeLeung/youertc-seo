@@ -65,7 +65,7 @@
                         :class="{ 'u-active': isActive(child.id) }"
                       >
                         <NuxtLink
-                          :to="`/channel/${item.id}`"
+                          :to="`/channel/${child.id}`"
                           @click="handleNavigate(item, childIndex)"
                         >
                           {{ child.name }}
@@ -209,7 +209,7 @@
                         :key="childIndex"
                       >
                         <NuxtLink
-                          :to="`/channel/${item.id}`"
+                          :to="`/channel/${child.id}`"
                           class="submenu-link"
                           @click="handleNavigate(item, childIndex)"
                         >
@@ -313,9 +313,7 @@ const handleNavigate = (item: Category, childIndex: number) => {
   closeMobileMenu()
 }
 
-const isActive = (id: number | string) => {
-  return activeId.value === id.toString()
-}
+const route = useRoute()
 
 // ESC 键关闭抽屉
 const onKeydown = (e: KeyboardEvent) => {
@@ -325,10 +323,13 @@ const onKeydown = (e: KeyboardEvent) => {
 }
 
 // 路由切换时关闭抽屉
-const route = useRoute()
 watch(() => route.fullPath, () => {
   if (isMobileMenuOpen.value) closeMobileMenu()
 })
+
+const isActive = (id: number | string) => {
+  return route.params.id?.toString() === id.toString()
+}
 
 onMounted(() => {
   checkMobile()

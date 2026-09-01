@@ -2,11 +2,15 @@
   <div>
     <div class="is-main f-mb15" role="main">
       <div class="container">
-        <!-- 面包屑（沿用原 .m-location） -->
+        <!-- 面包屑（沿用原 .m-location，选中二级分类时显示完整层级） -->
         <nav class="m-location f-mb10" aria-label="面包屑导航">
           <span>当前位置：</span>
-          <NuxtLink to="/" target="_blank">网站首页</NuxtLink> &gt;
-          <a aria-current="page">{{ cateInfo.name }}</a>
+          <NuxtLink to="/" target="_blank">网站首页</NuxtLink>
+          <template v-for="(crumb, i) in breadcrumbTrail" :key="i">
+            &gt;
+            <NuxtLink v-if="i < breadcrumbTrail.length - 1" :to="crumb.url" target="_blank">{{ crumb.name }}</NuxtLink>
+            <a v-else aria-current="page">{{ crumb.name }}</a>
+          </template>
         </nav>
 
         <div class="m-pgpdbox1">
@@ -128,18 +132,38 @@ const sliceCateArticlePage = () => {
 const { data: channelData, refresh } = await useAsyncData(
   `channel-${categoryId.value}`,
   async () => {
-    store.setActiveId(categoryId.value)
+    const id = categoryId.value
 
-    // 查找当前分类
-    const found = store.cateList.find(c => c.id.toString() === store.activeId)
-    const cateInfo = found || ({} as Category)
-    const childList = found?.childs || []
+    // 解析当前 ID 是一级分类还是二级分类
+    let parent: Category | null = null
+    let childIndex = -1
+    for (const c of store.cateList) {
+      if (c.id.toString() === id) {
+        parent = c
+        childIndex = -1
+        break
+      }
+      const idx = (c.childs || []).findIndex(ch => ch.id.toString() === id)
+      if (idx !== -1) {
+        parent = c
+        childIndex = idx
+        break
+      }
+    }
+
+    const cateInfo = parent || ({} as Category)
+    const childList = parent?.childs || []
+
+    // 同步 store：一级分类直接显示全部子分类，二级分类高亮对应子分类
+    store.setActiveId(cateInfo.id?.toString() || id)
+    store.setActiveIndex(childIndex)
+    activeIndex.value = childIndex
 
     // 获取文章列表
     let articles: Article[] = []
     let totalCount = 0
 
-    if (store.activeIndex === -1) {
+    if (childIndex === -1) {
       // 父分类：fetchCateArticle 不支持分页，一次性获取全量数据，由前端 slice 分页
       const res = await fetchCateArticle({
         siteId: config.public.siteId as number,
@@ -151,15 +175,14 @@ const { data: channelData, refresh } = await useAsyncData(
       articles = page.list
       totalCount = page.total
     } else {
-      activeIndex.value = store.activeIndex
-      const child = childList[store.activeIndex]
+      const child = childList[childIndex]
       if (child) {
         const res = await fetchArticlePage({
-        page: currentPage.value,
-        pageSize: pageSize.value,
-        siteId: child.siteId as number,
-        cateId: child.id
-      })
+          page: currentPage.value,
+          pageSize: pageSize.value,
+          siteId: child.siteId as number,
+          cateId: child.id
+        })
         const page = extractPageData(res)
         articles = page.list.map((item: any) => item.article || item)
         totalCount = page.total
@@ -173,6 +196,20 @@ const { data: channelData, refresh } = await useAsyncData(
 // 从 channelData 派生响应式数据
 const cateInfo = computed<Category>(() => channelData.value?.cateInfo || ({} as Category))
 const childList = computed<Category[]>(() => channelData.value?.childList || [])
+
+// 面包屑层级：默认「首页 > 一级分类」，选中二级分类时显示「首页 > 一级分类 > 二级分类」
+const breadcrumbTrail = computed(() => {
+  const trail: { name: string; url: string }[] = []
+  const parent = cateInfo.value
+  if (parent?.name) {
+    trail.push({ name: parent.name, url: `${config.public.siteUrl}/channel/${parent.id}` })
+  }
+  if (activeIndex.value >= 0 && childList.value[activeIndex.value]) {
+    const child = childList.value[activeIndex.value]
+    trail.push({ name: child.name, url: `${config.public.siteUrl}/channel/${child.id}` })
+  }
+  return trail
+})
 
 // cateArticleList 和 total 需要在交互中修改，用 ref 并从 channelData 初始化
 const cateArticleList = ref<Article[]>([])
@@ -221,13 +258,14 @@ const loadChildArticle = async (index: number) => {
 }
 
 const handleSelectChild = async (index: number) => {
-  activeIndex.value = index
+  const child = childList.value[index]
+  if (!child) return
   currentPage.value = 1
-  // 切换子分类时清除 URL 中的 page 参数（重置到第 1 页）
-  const newQuery = { ...route.query }
-  delete newQuery.page
-  await router.replace({ query: newQuery })
-  await loadChildArticle(index)
+  // 点击子分类直接跳转到子分类 URL，与顶部导航行为保持一致
+  await router.push({
+    path: `/channel/${child.id}`,
+    query: { pageSize: pageSize.value }
+  })
 }
 
 const changePage = (newPage: number) => {
@@ -262,18 +300,22 @@ const formDate = (date: string) => {
 }
 
 // SEO：在数据加载后注入，确保 SSR HTML 中包含真实分类名
+const seoName = computed(() => {
+  if (activeIndex.value >= 0 && childList.value[activeIndex.value]) {
+    return childList.value[activeIndex.value].name
+  }
+  return cateInfo.value.name || '分类'
+})
+
 useSeo({
-  title: `${cateInfo.value.name || '分类'} - 陕西有色驼城建设有限公司`,
-  description: `${cateInfo.value.name || '分类'} - 陕西有色驼城建设有限公司分类页面`,
-  keywords: `${cateInfo.value.name || '分类'},陕西有色驼城建设有限公司`,
+  title: `${seoName.value} - 陕西有色驼城建设有限公司`,
+  description: `${seoName.value} - 陕西有色驼城建设有限公司分类页面`,
+  keywords: `${seoName.value},陕西有色驼城建设有限公司`,
   url: `${config.public.siteUrl}/channel/${categoryId.value}`,
   type: 'website'
 })
 
-useBreadcrumbJsonLd([
-  { name: '首页', url: config.public.siteUrl as string },
-  { name: cateInfo.value.name || '分类', url: `${config.public.siteUrl}/channel/${categoryId.value}` }
-])
+useBreadcrumbJsonLd(breadcrumbTrail)
 
 // 监听路由参数变化（切换分类）
 watch(() => route.params.id, async (newId) => {

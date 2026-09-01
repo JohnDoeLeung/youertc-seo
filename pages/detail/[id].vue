@@ -2,12 +2,18 @@
   <div>
     <div class="is-main f-mb15" role="main">
       <div class="container">
-        <!-- 面包屑（沿用原 .m-location） -->
+        <!-- 面包屑（沿用原 .m-location）
+             注意：文章详情接口只返回 cateId、不返回 cateName，
+             分类名称需从全局分类树反查，故这里用 categoryTrail 动态渲染，
+             而不是读 article.cateName（该字段永远为空，会导致回退成「联系我们」） -->
         <nav class="m-location f-mb10" aria-label="面包屑导航">
           <span>当前位置：</span>
-          <NuxtLink to="/" target="_blank">网站首页</NuxtLink> &gt;
-          <NuxtLink v-if="article.cateName" :to="`/channel/${article.cateId}`" target="_blank">{{ article.cateName }}</NuxtLink>
-          <NuxtLink v-else to="/about" target="_blank">联系我们</NuxtLink> &gt;
+          <NuxtLink to="/" target="_blank">网站首页</NuxtLink>
+          <template v-for="crumb in categoryTrail" :key="`bc-${crumb.id}`">
+            <span> &gt; </span>
+            <NuxtLink :to="`/channel/${channelId}`" target="_blank">{{ crumb.name }}</NuxtLink>
+          </template>
+          <span> &gt; </span>
           <a aria-current="page">正文</a>
         </nav>
 
@@ -71,11 +77,13 @@
 
 <script setup lang="ts">
 import type { Article } from '~/stores/site'
+import { useSiteStore } from '~/stores/site'
 import { sanitize } from '~/utils/sanitize'
-import { getFileName } from '~/utils'
+import { getFileName, findCategoryPath } from '~/utils'
 
 const config = useRuntimeConfig()
 const route = useRoute()
+const store = useSiteStore()
 
 const { fetchArticleItem } = useApi()
 const articleId = computed(() => route.params.id as string)
@@ -109,6 +117,22 @@ watch(articleData, (newData) => {
 const next = computed(() => article.value.next || null)
 const prev = computed(() => article.value.prev || null)
 
+// 分类层级：文章详情接口只返回 cateId、不返回 cateName，
+// 需从全局分类树（已在 init-site 插件中预加载）反查分类名称。
+// 例：cateId=37（公司新闻）→ [新闻中心, 公司新闻]
+const categoryTrail = computed(() => findCategoryPath(store.cateList, article.value.cateId))
+
+// 频道页只在顶层分类数组中查找（详见 pages/channel/[id].vue），
+// 传二级分类 ID 会得到空列表页面，因此链接统一指向一级分类 ID
+const channelId = computed(() => categoryTrail.value[0]?.id)
+
+// 文章实际所属分类名（取层级最末一级），供 SEO / 结构化数据使用
+const cateName = computed(() =>
+  categoryTrail.value.length
+    ? categoryTrail.value[categoryTrail.value.length - 1].name
+    : ''
+)
+
 // 文章正文消毒（SSR 兼容：客户端用 DOMPurify，服务端透传）
 const sanitizedDetail = computed(() => sanitize(article.value.detail || ''))
 
@@ -132,7 +156,7 @@ watch(sanitizedDetail, lazyLoadContentImages)
 useSeo({
   title: `${article.value.title || '文章详情'} - 陕西有色驼城建设有限公司`,
   description: article.value.description || article.value.title || '',
-  keywords: `${article.value.title},${article.value.cateName || ''},陕西有色驼城建设有限公司`,
+  keywords: `${article.value.title},${cateName.value},陕西有色驼城建设有限公司`,
   url: `${config.public.siteUrl}/detail/${articleId.value}`,
   image: article.value.header || '',
   type: 'article'
@@ -140,9 +164,11 @@ useSeo({
 
 useBreadcrumbJsonLd([
   { name: '首页', url: config.public.siteUrl as string },
-  ...(article.value.cateId
-    ? [{ name: article.value.cateName || '分类', url: `${config.public.siteUrl}/channel/${article.value.cateId}` }]
-    : [{ name: '联系我们', url: `${config.public.siteUrl}/about` }]),
+  // 与页面面包屑保持一致：层级来自分类树，链接指向一级分类频道页
+  ...categoryTrail.value.map(crumb => ({
+    name: crumb.name,
+    url: `${config.public.siteUrl}/channel/${channelId.value}`
+  })),
   { name: article.value.title || '正文', url: `${config.public.siteUrl}/detail/${articleId.value}` }
 ])
 
@@ -155,7 +181,7 @@ useArticleJsonLd({
   createTime: article.value.createTime,
   time: article.value.time,
   cateId: article.value.cateId,
-  cateName: article.value.cateName
+  cateName: cateName.value
 })
 </script>
 

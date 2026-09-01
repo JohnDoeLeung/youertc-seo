@@ -1,6 +1,7 @@
 /**
  * 通用工具函数
  */
+import type { Category } from '~/stores/site'
 
 /**
  * 防抖函数（替代原项目中未防抖的 resize 监听）
@@ -46,4 +47,56 @@ export function formatDate(date?: string): string {
 export function getFileName(url: string, length = 25): string {
   if (!url) return ''
   return url.substring(url.length - length)
+}
+
+export interface CategoryCrumb {
+  id: string | number
+  name: string
+}
+
+/**
+ * 在两级分类树中按 cateId 反查「一级分类 → 二级分类」层级路径
+ *
+ * 背景：后端 /article/common/item/{id}（文章详情）只返回 cateId，
+ * 不返回 cateName / cateInfo，因此详情页无法直接拿到分类名称，
+ * 必须借助全局分类树（store.cateList）反查。
+ * （列表接口 /article/common/page 返回的是 { cateInfo, article } 嵌套结构，
+ *   详情页接口则没有这层 cateInfo，两者结构不一致。）
+ *
+ * @param tree 分类树，来自 store.cateList
+ * @param cateId 文章所属分类 ID，通常为二级分类
+ * @returns 层级路径（一级在前）；父子同名时只保留一级，避免出现
+ *          「招标信息 > 招标信息」这类重复面包屑；未命中时返回空数组
+ */
+export function findCategoryPath(
+  tree: Category[],
+  cateId?: string | number
+): CategoryCrumb[] {
+  if (!tree?.length || cateId === undefined || cateId === null || cateId === '') {
+    return []
+  }
+
+  const target = String(cateId)
+
+  for (const parent of tree) {
+    // 命中一级分类
+    if (String(parent.id) === target) {
+      return [{ id: parent.id, name: parent.name }]
+    }
+
+    // 命中二级分类
+    const child = (parent.childs || []).find(c => String(c.id) === target)
+    if (child) {
+      // 父子同名（如 招标信息 → 招标信息、党建工作 → 党建工作）只展示一级
+      if (parent.name === child.name) {
+        return [{ id: parent.id, name: parent.name }]
+      }
+      return [
+        { id: parent.id, name: parent.name },
+        { id: child.id, name: child.name }
+      ]
+    }
+  }
+
+  return []
 }
